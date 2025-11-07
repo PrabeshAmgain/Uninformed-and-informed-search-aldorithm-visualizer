@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Interactive AI Search Algorithm Visualizer - Visualize BFS, DFS, A*, and more">
+    <meta property="og:title" content="AI Search Algorithm Visualizer">
+    <meta property="og:description" content="Interactive visualization of uninformed and informed search algorithms">
+    <title>AI Search Algorithm Visualizer</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔍</text></svg>">
+    <style>
+        :root {
+            --color-white: rgba(255, 255, 255, 1);
+            --color-black: rgba(0, 0, 0, 1);
+            --color-cream-50: rgba(252, 252, 249, 1);
+            --color-cream-100: rgba(255, 255, 253, 1);
+            --color-gray-200: rgba(245, 245, 245, 1);
+            --color-gray-300: rgba(167, 169, 169, 1);
+            --color-gray-400: rgba(119, 124, 124, 1);
+            --color-slate-500: rgba(98, 108, 113, 1);
+            --color-brown-600: rgba(94, 82, 64, 1);
+            --color-charcoal-700: rgba(31, 33, 33, 1);
+            --color-charcoal-800: rgba(38, 40, 40, 1);
+            --color-slate-900: rgba(19, 52, 59, 1);
+            --color-teal-300: rgba(50, 184, 198, 1);
+            --color-teal-400: rgba(45, 166, 178, 1);
+            --color-teal-500: rgba(33, 128, 141, 1);
+            --color-teal-600: rgba(29, 116, 128, 1);
+            --color-teal-700: rgba(26, 104, 115, 1);
+            --color-brown-600-rgb: 94, 82, 64;
+            --color-teal-500-rgb: 33, 128, 141;
+            --color-slate-900-rgb: 19, 52, 59;
+            --color-background: var(--color-cream-50);
+            --color-surface: var(--color-cream-100);
+            --color-text: var(--color-slate-900);
+            --color-text-secondary: var(--color-slate-500);
+            --color-primary: var(--color-teal-500);
+            --color-primary-hover: var(--color-teal-600);
+            --color-primary-active: var(--color-teal-700);
+            --color-border: rgba(var(--color-brown-600-rgb), 0.2);
+            --color-card-border: rgba(var(--color-brown-600-rgb), 0.12);
+            --font-family-base: "FKGroteskNeue", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            --font-size-sm: 12px;
+            --font-size-base: 14px;
+            --font-size-lg: 16px;
+            --font-size-xl: 18px;
+            --font-size-2xl: 20px;
+            --font-size-3xl: 24px;
+            --space-4: 4px;
+            --space-8: 8px;
+            --space-12: 12px;
+            --space-16: 16px;
+            --space-24: 24px;
+            --space-32: 32px;
+            --radius-base: 8px;
+            --radius-lg: 12px;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.04), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --color-gray-400-rgb: 119, 124, 124;
+                --color-gray-300-rgb: 167, 169, 169;
+                --color-gray-200-rgb: 245, 245, 245;
+                --color-background: var(--color-charcoal-700);
+                --color-surface: var(--color-charcoal-800);
+                --color-text: var(--color-gray-200);
+                --color-text-secondary: rgba(var(--color-gray-300-rgb), 0.7);
+                --color-primary: var(--color-teal-300);
+                --color-primary-hover: var(--color-teal-400);
+                --color-border: rgba(var(--color-gray-400-rgb), 0.3);
+                --color-card-border: rgba(var(--color-gray-400-rgb), 0.2);
+            }
+        }
+
+        @font-face {
+            font-family: 'FKGroteskNeue';
+            src: url('https://r2cdn.perplexity.ai/fonts/FKGroteskNeue.woff2') format('woff2');
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-family-base);
+            background-color: var(--color-background);
+            color: var(--color-text);
+            line-height: 1.5;
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            background-color: var(--color-surface);
+            border-bottom: 1px solid var(--color-card-border);
+            padding: var(--space-24) var(--space-16);
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .header h1 {
+            font-size: var(--font-size-3xl);
+            margin-bottom: var(--space-8);
+            color: var(--color-primary);
+        }
+
+        .header p {
+            font-size: var(--font-size-base);
+            color: var(--color-text-secondary);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Main Content */
+        .main-content {
+            display: flex;
+            flex: 1;
+            gap: var(--space-16);
+            padding: var(--space-16);
+        }
+
+        /* Left Panel */
+        .left-panel {
+            flex: 0 0 280px;
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-16);
+        }
+
+        /* Right Panel */
+        .right-panel {
+            flex: 0 0 280px;
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-16);
+        }
+
+        /* Center Canvas Area */
+        .canvas-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-16);
+            min-width: 0;
+        }
+
+        /* Panel Card */
+        .panel {
+            background-color: var(--color-surface);
+            border: 1px solid var(--color-card-border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-16);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .panel h3 {
+            font-size: var(--font-size-lg);
+            margin-bottom: var(--space-12);
+            color: var(--color-text);
+        }
+
+        /* Canvas Container */
+        .canvas-container {
+            background-color: var(--color-surface);
+            border: 1px solid var(--color-card-border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-16);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: auto;
+            box-shadow: var(--shadow-md);
+        }
+
+        #gridCanvas {
+            border: 2px solid var(--color-border);
+            border-radius: var(--radius-base);
+            cursor: crosshair;
+            display: block;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: var(--space-12);
+        }
+
+        .form-group label {
+            display: block;
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            margin-bottom: var(--space-4);
+            color: var(--color-text);
+        }
+
+        select, input[type="range"], input[type="number"] {
+            width: 100%;
+            padding: var(--space-8);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-base);
+            background-color: var(--color-background);
+            color: var(--color-text);
+            font-size: var(--font-size-sm);
+            font-family: var(--font-family-base);
+        }
+
+        select:focus, input:focus {
+            outline: 2px solid var(--color-primary);
+            outline-offset: 1px;
+        }
+
+        input[type="range"] {
+            padding: 0;
+            height: 32px;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: var(--space-8) var(--space-16);
+            border: none;
+            border-radius: var(--radius-base);
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: var(--font-family-base);
+            width: 100%;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background-color: var(--color-primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--color-primary-hover);
+        }
+
+        .btn-primary:active {
+            background-color: var(--color-primary-active);
+        }
+
+        .btn-secondary {
+            background-color: var(--color-background);
+            color: var(--color-text);
+            border: 1px solid var(--color-border);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--color-surface);
+        }
+
+        .btn-group {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-8);
+            margin-bottom: var(--space-12);
+        }
+
+        .btn-group-full {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-8);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Statistics */
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: var(--space-8) 0;
+            border-bottom: 1px solid var(--color-card-border);
+            font-size: var(--font-size-sm);
+        }
+
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            color: var(--color-text-secondary);
+        }
+
+        .stat-value {
+            font-weight: 600;
+            color: var(--color-primary);
+        }
+
+        /* Legend */
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-8);
+            margin-bottom: var(--space-8);
+            font-size: var(--font-size-sm);
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            border: 1px solid var(--color-border);
+        }
+
+        /* Checkbox */
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: var(--space-8);
+            margin-bottom: var(--space-8);
+            font-size: var(--font-size-sm);
+        }
+
+        input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        /* Range Value Display */
+        .range-value {
+            display: inline-block;
+            font-weight: 600;
+            color: var(--color-primary);
+            margin-left: var(--space-8);
+        }
+
+        /* Collapsible */
+        .collapsible {
+            margin-top: var(--space-16);
+        }
+
+        .collapsible-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            padding: var(--space-8);
+            background-color: var(--color-background);
+            border-radius: var(--radius-base);
+            margin-bottom: var(--space-8);
+            user-select: none;
+        }
+
+        .collapsible-header:hover {
+            background-color: var(--color-surface);
+        }
+
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .collapsible-content.active {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .pseudocode {
+            background-color: var(--color-background);
+            padding: var(--space-12);
+            border-radius: var(--radius-base);
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            color: var(--color-text);
+        }
+
+        /* Comparison Table */
+        .comparison-table {
+            width: 100%;
+            font-size: var(--font-size-sm);
+            border-collapse: collapse;
+            margin-top: var(--space-8);
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: var(--space-8);
+            text-align: left;
+            border-bottom: 1px solid var(--color-card-border);
+        }
+
+        .comparison-table th {
+            font-weight: 600;
+            background-color: var(--color-background);
+        }
+
+        /* Status Badge */
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background-color: rgba(33, 128, 141, 0.15);
+            color: var(--color-primary);
+        }
+
+        .badge-error {
+            background-color: rgba(192, 21, 47, 0.15);
+            color: #c0152f;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .main-content {
+                flex-direction: column;
+            }
+
+            .left-panel, .right-panel {
+                flex: 1;
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: var(--font-size-2xl);
+            }
+
+            .btn-group {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: var(--space-8);
+            border-radius: var(--radius-base);
+            font-size: var(--font-size-sm);
+            pointer-events: none;
+            z-index: 1000;
+            display: none;
+            max-width: 200px;
+        }
+
+        .info-icon {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            background-color: var(--color-primary);
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 16px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: help;
+            margin-left: var(--space-4);
+        }
+
+        /* Loading Animation */
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .running .stat-value {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <h1>🔍 AI Search Algorithm Visualizer</h1>
+            <p>Interactive visualization of Uninformed &amp; Informed Search Algorithms. Draw obstacles, select an algorithm, and watch it find the optimal path!</p>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Left Panel -->
+            <aside class="left-panel">
+                <!-- Algorithm Selection -->
+                <div class="panel">
+                    <h3>Algorithm Selection</h3>
+                    <div class="form-group">
+                        <label for="algorithmSelect">Choose Algorithm</label>
+                        <select id="algorithmSelect">
+                            <optgroup label="Uninformed Search">
+                                <option value="bfs" selected>Breadth-First Search (BFS)</option>
+                                <option value="dfs">Depth-First Search (DFS)</option>
+                                <option value="ucs">Uniform-Cost Search (UCS)</option>
+                                <option value="dls">Depth-Limited Search (DLS)</option>
+                                <option value="iddfs">Iterative Deepening DFS</option>
+                            </optgroup>
+                            <optgroup label="Informed Search">
+                                <option value="greedy">Greedy Best-First Search</option>
+                                <option value="astar">A* Search</option>
+                                <option value="weighted-astar">Weighted A*</option>
+                                <option value="bidirectional">Bidirectional Search</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    <div id="algorithmInfo" style="font-size: 12px; color: var(--color-text-secondary); margin-top: 8px;"></div>
+                </div>
+
+                <!-- Control Panel -->
+                <div class="panel">
+                    <h3>Controls</h3>
+                    <div class="btn-group">
+                        <button id="runBtn" class="btn btn-primary">▶ Run</button>
+                        <button id="pauseBtn" class="btn btn-secondary" disabled>⏸ Pause</button>
+                        <button id="stepBtn" class="btn btn-secondary">⏭ Step</button>
+                        <button id="resetBtn" class="btn btn-secondary">🔄 Reset</button>
+                    </div>
+                    <div class="form-group">
+                        <label>Speed: <span class="range-value" id="speedValue">50ms</span></label>
+                        <input type="range" id="speedSlider" min="10" max="500" value="50">
+                    </div>
+                </div>
+
+                <!-- Maze Generation -->
+                <div class="panel">
+                    <h3>Maze &amp; Walls</h3>
+                    <div class="btn-group-full">
+                        <button id="clearWallsBtn" class="btn btn-secondary">Clear Walls</button>
+                        <button id="randomMazeBtn" class="btn btn-secondary">Random Maze</button>
+                        <button id="recursiveMazeBtn" class="btn btn-secondary">Recursive Division</button>
+                    </div>
+                    <div class="form-group" style="margin-top: 12px;">
+                        <label>Wall Density: <span class="range-value" id="densityValue">30%</span></label>
+                        <input type="range" id="densitySlider" min="10" max="50" value="30">
+                    </div>
+                </div>
+
+                <!-- Options -->
+                <div class="panel">
+                    <h3>Options</h3>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="showGridLines" checked>
+                        <label for="showGridLines">Show Grid Lines</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="allowDiagonal">
+                        <label for="allowDiagonal">Allow Diagonal Movement</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="showCosts">
+                        <label for="showCosts">Show Node Costs</label>
+                    </div>
+                    <div id="heuristicGroup" style="display: none;">
+                        <div class="form-group" style="margin-top: 12px;">
+                            <label for="heuristicSelect">Heuristic Function</label>
+                            <select id="heuristicSelect">
+                                <option value="manhattan">Manhattan Distance</option>
+                                <option value="euclidean">Euclidean Distance</option>
+                                <option value="chebyshev">Chebyshev Distance</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="depthLimitGroup" style="display: none;">
+                        <div class="form-group" style="margin-top: 12px;">
+                            <label for="depthLimit">Depth Limit</label>
+                            <input type="number" id="depthLimit" min="5" max="50" value="20">
+                        </div>
+                    </div>
+                    <div id="weightGroup" style="display: none;">
+                        <div class="form-group" style="margin-top: 12px;">
+                            <label>Weight (w): <span class="range-value" id="weightValue">1.5</span></label>
+                            <input type="range" id="weightSlider" min="1.0" max="3.0" step="0.1" value="1.5">
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Canvas Area -->
+            <main class="canvas-area">
+                <div class="canvas-container">
+                    <canvas id="gridCanvas" width="800" height="600"></canvas>
+                </div>
+                <div class="panel">
+                    <h3>Legend</h3>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #00FF00;"></div>
+                            <span>Start Node</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #FF0000;"></div>
+                            <span>Goal Node</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #000000;"></div>
+                            <span>Wall</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #FFA500;"></div>
+                            <span>Frontier</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #87CEEB;"></div>
+                            <span>Visited</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #FFFF00;"></div>
+                            <span>Current</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #800080;"></div>
+                            <span>Path</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background-color: #FFFFFF; border: 2px solid #000;"></div>
+                            <span>Empty</span>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Right Panel -->
+            <aside class="right-panel">
+                <!-- Statistics -->
+                <div class="panel" id="statsPanel">
+                    <h3>Statistics</h3>
+                    <div class="stat-item">
+                        <span class="stat-label">Algorithm:</span>
+                        <span class="stat-value" id="statAlgorithm">BFS</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Status:</span>
+                        <span class="stat-value" id="statStatus">Ready</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Nodes Visited:</span>
+                        <span class="stat-value" id="statVisited">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Nodes in Frontier:</span>
+                        <span class="stat-value" id="statFrontier">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Path Length:</span>
+                        <span class="stat-value" id="statPathLength">-</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Path Cost:</span>
+                        <span class="stat-value" id="statPathCost">-</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Time:</span>
+                        <span class="stat-value" id="statTime">0ms</span>
+                    </div>
+                </div>
+
+                <!-- Algorithm Info -->
+                <div class="panel">
+                    <h3>Algorithm Details</h3>
+                    <div id="algorithmDetails" style="font-size: 12px; line-height: 1.6;">
+                        <p><strong>Breadth-First Search (BFS)</strong></p>
+                        <p>Explores nodes level by level using a queue.</p>
+                        <p><strong>Complete:</strong> ✓ Yes</p>
+                        <p><strong>Optimal:</strong> ✓ Yes</p>
+                        <p><strong>Time:</strong> O(b^d)</p>
+                        <p><strong>Space:</strong> O(b^d)</p>
+                    </div>
+                    
+                    <div class="collapsible">
+                        <div class="collapsible-header" onclick="toggleCollapsible(this)">
+                            <span>Show Pseudocode</span>
+                            <span>▼</span>
+                        </div>
+                        <div class="collapsible-content">
+                            <div class="pseudocode" id="pseudocodeDisplay"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Comparison -->
+                <div class="panel">
+                    <h3>Quick Comparison</h3>
+                    <table class="comparison-table">
+                        <tr>
+                            <th>Algorithm</th>
+                            <th>Optimal</th>
+                            <th>Complete</th>
+                        </tr>
+                        <tr>
+                            <td>BFS</td>
+                            <td><span class="badge badge-success">Yes</span></td>
+                            <td><span class="badge badge-success">Yes</span></td>
+                        </tr>
+                        <tr>
+                            <td>DFS</td>
+                            <td><span class="badge badge-error">No</span></td>
+                            <td><span class="badge badge-error">No</span></td>
+                        </tr>
+                        <tr>
+                            <td>A*</td>
+                            <td><span class="badge badge-success">Yes</span></td>
+                            <td><span class="badge badge-success">Yes</span></td>
+                        </tr>
+                        <tr>
+                            <td>Greedy</td>
+                            <td><span class="badge badge-error">No</span></td>
+                            <td><span class="badge badge-error">No</span></td>
+                        </tr>
+                    </table>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <div class="tooltip" id="tooltip"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
